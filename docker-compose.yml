@@ -1,0 +1,18 @@
+version: '3.0'
+services:
+  demo-taskmngr-db:
+    image: gerardojaramillo/demo-taskmngr-db:0.0.1
+    container_name: demo-taskmngr-db
+    restart: always
+    ports:
+      - 3306:3306
+###      - 5432:5432
+    mem_limit: 512m
+    mem_reservation: 512m
+    cpus: 0.5
+    environment:
+      - MYSQL_DATABASE=demo-taskmngr-db
+      - MYSQL_ROOT_PASSWORD=password
+      - TZ=America/Mexico_City
+### - POSTGRES_DB=demo-taskmngr-db
+#### - POSTGRES_PASSWORD=password
