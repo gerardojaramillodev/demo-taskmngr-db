@@ -18,7 +18,7 @@ envVarGroups:
   - key: MYSQL_DATABASE
     value: demo-taskmngr-db
   - key: MYSQL_USER
-    value: root
+    value: mysql
   - key: MYSQL_PASSWORD
     generateValue: true
   - key: MYSQL_ROOT_PASSWORD
