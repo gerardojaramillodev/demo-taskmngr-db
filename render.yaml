@@ -1,6 +1,6 @@
 services:
 - type: pserv
-  name: mysql
+  name: demo-taskmngr-db
   plan: starter
   env: docker
   region: ohio
@@ -8,17 +8,17 @@ services:
   disk:
     name: mysql
     mountPath: /var/lib/mysql
-    sizeGB: 10
+    sizeGB: 1
   envVars:
-  - fromGroup: mysql
+  - fromGroup: demo-taskmngr-db
 
 envVarGroups:
-- name: mysql
+- name: demo-taskmngr-db
   envVars:
   - key: MYSQL_DATABASE
-    value: mysql
+    value: demo-taskmngr-db
   - key: MYSQL_USER
-    value: mysql
+    value: root
   - key: MYSQL_PASSWORD
     generateValue: true
   - key: MYSQL_ROOT_PASSWORD
