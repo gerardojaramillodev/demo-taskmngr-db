@@ -130,6 +130,22 @@ CREATE TABLE IF NOT EXISTS `task_assign` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
+drop procedure if exists sp_task_list;
+delimiter //
+create procedure `sp_task_list`()
+begin
+   select json_object('taskid', t.taskid, 'name', t.name, 'descr', t.descr, 'projectid', t.projectid, 'status', t.status, 'taskid', a.taskid, 'assigns', case when a.taskid is not null then json_arrayagg(a.assigns) else json_array() end) json
+	 from task t
+left join (select a.taskid, json_object('userid', a.userid, 'name', u.name, 'email', u.email) assigns
+			 from task_assign a
+             join user u
+			   on a.userid = u.userid) a
+	   on t.taskid = a.taskid
+ group by t.taskid
+ order by t.taskid;
+ end //
+delimiter ;
+
 SHOW WARNINGS;
 
 SET SQL_MODE=@OLD_SQL_MODE;
@@ -1450,22 +1466,3 @@ insert into task_assign (taskid, userid)
         (1, 3),
         (2, 4),
         (3, 5);
-
-drop procedure if exists sp_task_list;
-delimiter //
-create procedure `sp_task_list`()
-begin
-   select json_object('taskid', t.taskid, 'name', t.name, 'descr', t.descr, 'projectid', t.projectid, 'status', t.status, 'taskid', a.taskid, 'assigns', case when a.taskid is not null then json_arrayagg(a.assigns) else json_array() end) json
-	 from task t
-left join (select a.taskid, json_object('userid', a.userid, 'name', u.name, 'email', u.email) assigns
-			 from task_assign a
-             join user u
-			   on a.userid = u.userid) a
-	   on t.taskid = a.taskid
- group by t.taskid
- order by t.taskid;
- end //
-delimiter ;
-
-
-
