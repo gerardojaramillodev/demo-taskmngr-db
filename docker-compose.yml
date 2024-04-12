@@ -6,7 +6,6 @@ services:
     restart: always
     ports:
       - 3306:3306
-###      - 5432:5432
     mem_limit: 512m
     mem_reservation: 512m
     cpus: 0.5
@@ -14,5 +13,3 @@ services:
       - MYSQL_DATABASE=demo-taskmngr-db
       - MYSQL_ROOT_PASSWORD=password
       - TZ=America/Mexico_City
-### - POSTGRES_DB=demo-taskmngr-db
-#### - POSTGRES_PASSWORD=password

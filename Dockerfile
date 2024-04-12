@@ -1,6 +1,6 @@
 ###############################################################################
 ### MySQL
-### FROM mysql:8.0.24
+### FROM mysql:8.0.24
 FROM mysql/mysql-server:8.0.24
 ENV MYSQL_DATABASE=demo-taskmngr-db
 ENV MYSQL_ROOT_PASSWORD=password
