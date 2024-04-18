@@ -133,7 +133,7 @@ ENGINE = InnoDB;
 drop procedure if exists sp_task_list;
 
 delimiter //
-create definer=`root`@`%` procedure `sp_task_list`()
+create definer=`mysql`@`%` procedure `sp_task_list`()
 begin
     select json_object('taskid', t.taskid, 'name', t.name, 'descr', t.descr, 'project', p.project, 'status', t.status, 'taskid', a.taskid, 'assigns', case when a.taskid is not null then json_arrayagg(a.assigns) else json_array() end) json
 	 from task t
