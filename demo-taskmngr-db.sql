@@ -131,11 +131,13 @@ CREATE TABLE IF NOT EXISTS `task_assign` (
 ENGINE = InnoDB;
 
 drop procedure if exists sp_task_list;
+
 delimiter //
-create procedure `sp_task_list`()
+create definer=`root`@`%` procedure `sp_task_list`()
 begin
-   select json_object('taskid', t.taskid, 'name', t.name, 'descr', t.descr, 'projectid', t.projectid, 'status', t.status, 'taskid', a.taskid, 'assigns', case when a.taskid is not null then json_arrayagg(a.assigns) else json_array() end) json
+    select json_object('taskid', t.taskid, 'name', t.name, 'descr', t.descr, 'project', p.project, 'status', t.status, 'taskid', a.taskid, 'assigns', case when a.taskid is not null then json_arrayagg(a.assigns) else json_array() end) json
 	 from task t
+     join (select p.projectid, json_object('projectId', p.projectid, 'projectName', p.name) project from project p) p on t.projectid = p.projectid
 left join (select a.taskid, json_object('userid', a.userid, 'name', u.name, 'email', u.email) assigns
 			 from task_assign a
              join user u
@@ -1454,15 +1456,47 @@ insert into project (name, descr) values
     ('Hot Girl', 'Hot Girl')
     ;
 
-insert into task (name, descr, projectid) values
-    ('task #1', 'task #1', 1),
-    ('task #2', 'task #2', 2),
-    ('task #3', 'task #3', 3);
+select * from task;
+insert into task (name, descr, projectid)
+	values
+		('Task #01', 'Task Descr #01', 1),
+		('Task #02', 'Task Descr #02', 2),
+		('time #03', 'Task Descr #03', 3),
+		('Task #04', 'Task Descr #04', 1),
+		('Task #05', 'Task Descr #05', 2),
+		('time #06', 'Task Descr #06', 3),
+		('Task #07', 'Task Descr #07', 1),
+		('Task #08', 'Task Descr #08', 2),
+		('time #09', 'Task Descr #09', 3),
+		('Task #10', 'Task Descr #10', 4),
+		('Task #11', 'Task Descr #11', 5),
+		('time #12', 'Task Descr #12', 6)
+        ;
 
+select * from task_assign;
 insert into task_assign (taskid, userid)
 	values
-		(1, 1),
-        (1, 2),
-        (1, 3),
-        (2, 4),
-        (3, 5);
+		(1, 10000),
+        (1, 10001),
+        (1, 10002),
+        (2, 10003),
+        (3, 10004),
+        (2, 10005),
+        (2, 10003),
+        (3, 10003),
+        (4, 10003),
+        (5, 10003),
+        (6, 10003),
+        (7, 10003)
+        (8, 10001)
+        (8, 10007)
+        (8, 10008)
+        (8, 10009)
+        (8, 10010)
+        (8, 10019)
+        (9, 10001)
+        (9, 10010)
+        (9, 10011)
+        (9, 10012)
+        (9, 10013)
+        ;
