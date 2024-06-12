@@ -133,7 +133,7 @@ ENGINE = InnoDB;
 drop procedure if exists sp_task_list;
 
 delimiter //
-create definer=`mysql`@`%` procedure `sp_task_list`()
+create definer=`root`@`%` procedure `sp_task_list`()
 begin
     select json_object('taskid', t.taskid, 'name', t.name, 'descr', t.descr, 'project', p.project, 'status', t.status, 'taskid', a.taskid, 'assigns', case when a.taskid is not null then json_arrayagg(a.assigns) else json_array() end) json
 	 from task t
@@ -1456,7 +1456,6 @@ insert into project (name, descr) values
     ('Hot Girl', 'Hot Girl')
     ;
 
-select * from task;
 insert into task (name, descr, projectid)
 	values
 		('Task #01', 'Task Descr #01', 1),
@@ -1473,7 +1472,6 @@ insert into task (name, descr, projectid)
 		('time #12', 'Task Descr #12', 6)
         ;
 
-select * from task_assign;
 insert into task_assign (taskid, userid)
 	values
 		(1, 10000),
@@ -1482,21 +1480,27 @@ insert into task_assign (taskid, userid)
         (2, 10003),
         (3, 10004),
         (2, 10005),
-        (2, 10003),
-        (3, 10003),
-        (4, 10003),
-        (5, 10003),
-        (6, 10003),
-        (7, 10003)
-        (8, 10001)
-        (8, 10007)
-        (8, 10008)
-        (8, 10009)
-        (8, 10010)
-        (8, 10019)
-        (9, 10001)
-        (9, 10010)
-        (9, 10011)
-        (9, 10012)
+        (2, 10020),
+        (5, 10001),
+        (5, 10010),
+        (2, 10015),
+        (3, 10009),
+        (3, 10010),
+        (3, 10019),
+        (3, 10025),
+        (4, 10022),
+        (5, 10023),
+        (6, 10024),
+        (7, 10025),
+        (8, 10001),
+        (8, 10007),
+        (8, 10008),
+        (8, 10009),
+        (8, 10010),
+        (8, 10019),
+        (9, 10001),
+        (9, 10010),
+        (9, 10011),
+        (9, 10012),
         (9, 10013)
         ;
