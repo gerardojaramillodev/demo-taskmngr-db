@@ -17,24 +17,40 @@ SHOW WARNINGS;
 USE `demo-taskmngr-db` ;
 
 -- -----------------------------------------------------
--- Table `task`
+-- Table `priority`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `task` ;
+DROP TABLE IF EXISTS `priority` ;
 
 SHOW WARNINGS;
-CREATE TABLE IF NOT EXISTS `task` (
-  `taskid` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(72) NOT NULL,
-  `descr` VARCHAR(45) NULL,
+CREATE TABLE IF NOT EXISTS `priority` (
+  `priorityid` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(24) NOT NULL,
   `createdat` TIMESTAMP NOT NULL DEFAULT current_timestamp,
   `updatedat` TIMESTAMP NOT NULL DEFAULT current_timestamp on update current_timestamp,
-  `projectid` INT NOT NULL,
-  `status` ENUM('Not started', 'In Progress', 'Blocked', 'Done') NOT NULL DEFAULT 'Not started',
   `uuid` BINARY(16) NOT NULL DEFAULT (uuid_to_bin(uuid())),
-  PRIMARY KEY (`taskid`, `uuid`),
-  UNIQUE INDEX `taskid_UNIQUE` (`taskid` ASC) VISIBLE,
-  UNIQUE INDEX `uuid_UNIQUE` (`uuid` ASC) VISIBLE)
-ENGINE = InnoDB;
+  PRIMARY KEY (`priorityid`, `uuid`),
+  UNIQUE INDEX `priorityid_UNIQUE` (`priorityid` ASC) VISIBLE)
+ENGINE = InnoDB
+AUTO_INCREMENT = 4000;
+
+SHOW WARNINGS;
+
+-- -----------------------------------------------------
+-- Table `status`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `status` ;
+
+SHOW WARNINGS;
+CREATE TABLE IF NOT EXISTS `status` (
+  `statusid` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(48) NOT NULL,
+  `createdat` TIMESTAMP NOT NULL DEFAULT current_timestamp,
+  `updatedat` TIMESTAMP NOT NULL DEFAULT current_timestamp on update current_timestamp,
+  `uuid` BINARY(16) NOT NULL DEFAULT (uuid_to_bin(uuid())),
+  PRIMARY KEY (`statusid`, `uuid`),
+  UNIQUE INDEX `statusid_UNIQUE` (`statusid` ASC) VISIBLE)
+ENGINE = InnoDB
+AUTO_INCREMENT = 5000;
 
 SHOW WARNINGS;
 
@@ -50,12 +66,56 @@ CREATE TABLE IF NOT EXISTS `project` (
   `descr` VARCHAR(92) NULL,
   `createdat` TIMESTAMP NOT NULL DEFAULT current_timestamp,
   `updatedat` TIMESTAMP NOT NULL DEFAULT current_timestamp on update current_timestamp,
-  `status` ENUM('Active', 'Inactive') NOT NULL DEFAULT 'Active',
   `uuid` BINARY(16) NOT NULL DEFAULT (uuid_to_bin(uuid())),
   PRIMARY KEY (`projectid`, `uuid`),
   UNIQUE INDEX `projectid_UNIQUE` (`projectid` ASC) VISIBLE,
   UNIQUE INDEX `uuid_UNIQUE` (`uuid` ASC) VISIBLE)
-ENGINE = InnoDB;
+ENGINE = InnoDB
+AUTO_INCREMENT = 7000;
+
+SHOW WARNINGS;
+
+-- -----------------------------------------------------
+-- Table `task`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `task` ;
+
+SHOW WARNINGS;
+CREATE TABLE IF NOT EXISTS `task` (
+  `taskid` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(72) NOT NULL,
+  `descr` VARCHAR(45) NULL,
+  `priorityid` INT UNSIGNED NULL,
+  `statusid` INT UNSIGNED NULL,
+  `projectid` INT UNSIGNED NULL,
+  `duedate` DATE NULL,
+  `createdby` INT UNSIGNED NULL,
+  `createdat` TIMESTAMP NOT NULL DEFAULT current_timestamp,
+  `updatedat` TIMESTAMP NOT NULL DEFAULT current_timestamp on update current_timestamp,
+  `uuid` BINARY(16) NOT NULL DEFAULT (uuid_to_bin(uuid())),
+  PRIMARY KEY (`taskid`, `uuid`),
+  UNIQUE INDEX `taskid_UNIQUE` (`taskid` ASC) VISIBLE,
+  UNIQUE INDEX `uuid_UNIQUE` (`uuid` ASC) VISIBLE,
+  INDEX `fk_prorityid_idx` (`priorityid` ASC) VISIBLE,
+  INDEX `fk_status_idx` (`statusid` ASC) VISIBLE,
+  INDEX `fk_project_idx` (`projectid` ASC) VISIBLE,
+  CONSTRAINT `fk_prorityid`
+    FOREIGN KEY (`priorityid`)
+    REFERENCES `priority` (`priorityid`)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_status`
+    FOREIGN KEY (`statusid`)
+    REFERENCES `status` (`statusid`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_project`
+    FOREIGN KEY (`projectid`)
+    REFERENCES `project` (`projectid`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
+ENGINE = InnoDB
+AUTO_INCREMENT = 30000;
 
 SHOW WARNINGS;
 
@@ -90,12 +150,8 @@ DROP TABLE IF EXISTS `user_picture` ;
 SHOW WARNINGS;
 CREATE TABLE IF NOT EXISTS `user_picture` (
   `userid` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `filename` VARCHAR(72) NOT NULL,
-  `contentType` VARCHAR(24) NULL,
-  `picture` BLOB NULL,
-  `createdat` TIMESTAMP NOT NULL DEFAULT current_timestamp,
-  `updatedat` TIMESTAMP NOT NULL DEFAULT current_timestamp on update current_timestamp,
-  `status` ENUM('Active', 'Inactive') NOT NULL DEFAULT 'Active',
+  `email` VARCHAR(64) NOT NULL,
+  `role` VARCHAR(24) NOT NULL,
   PRIMARY KEY (`userid`),
   UNIQUE INDEX `profileid_UNIQUE` (`userid` ASC) VISIBLE,
   CONSTRAINT `user_picture_userid_fk`
@@ -108,6 +164,27 @@ ENGINE = InnoDB;
 SHOW WARNINGS;
 
 -- -----------------------------------------------------
+-- Table `assign`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `assign` ;
+
+SHOW WARNINGS;
+CREATE TABLE IF NOT EXISTS `assign` (
+  `assignid` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(64) NOT NULL,
+  `email` VARCHAR(64) NOT NULL,
+  `createdat` TIMESTAMP NOT NULL DEFAULT current_timestamp,
+  `updatedat` TIMESTAMP NOT NULL DEFAULT current_timestamp on update current_timestamp,
+  `uuid` BINARY(16) NOT NULL DEFAULT (uuid_to_bin(uuid())),
+  PRIMARY KEY (`assignid`, `uuid`),
+  UNIQUE INDEX `uuid_UNIQUE` (`uuid` ASC) VISIBLE,
+  UNIQUE INDEX `email_UNIQUE` (`email` ASC) VISIBLE)
+ENGINE = InnoDB
+AUTO_INCREMENT = 10000;
+
+SHOW WARNINGS;
+
+-- -----------------------------------------------------
 -- Table `task_assign`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `task_assign` ;
@@ -115,38 +192,90 @@ DROP TABLE IF EXISTS `task_assign` ;
 SHOW WARNINGS;
 CREATE TABLE IF NOT EXISTS `task_assign` (
   `taskid` INT UNSIGNED NOT NULL,
-  `userid` INT UNSIGNED NOT NULL,
+  `assignid` INT UNSIGNED NOT NULL,
   INDEX `taskid_fk_idx` (`taskid` ASC) VISIBLE,
-  INDEX `userid_fk_idx` (`userid` ASC) VISIBLE,
+  INDEX `userid_fk_idx` (`assignid` ASC) VISIBLE,
   CONSTRAINT `taskid_fk`
     FOREIGN KEY (`taskid`)
     REFERENCES `task` (`taskid`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION,
   CONSTRAINT `userid_fk`
-    FOREIGN KEY (`userid`)
-    REFERENCES `user` (`userid`)
+    FOREIGN KEY (`assignid`)
+    REFERENCES `assign` (`assignid`)
     ON DELETE CASCADE
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
+
+SHOW WARNINGS;
+
+-- -----------------------------------------------------
+-- Table `tag`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `tag` ;
+
+SHOW WARNINGS;
+CREATE TABLE IF NOT EXISTS `tag` (
+  `tagid` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(48) NOT NULL,
+  `createdat` TIMESTAMP NOT NULL DEFAULT current_timestamp,
+  `updatedat` TIMESTAMP NOT NULL DEFAULT current_timestamp on update current_timestamp,
+  `uuid` BINARY(16) NOT NULL DEFAULT (uuid_to_bin(uuid())),
+  PRIMARY KEY (`tagid`, `uuid`),
+  UNIQUE INDEX `tagid_UNIQUE` (`tagid` ASC) VISIBLE)
+ENGINE = InnoDB
+AUTO_INCREMENT = 6000;
+
+SHOW WARNINGS;
+
+-- -----------------------------------------------------
+-- Table `task_tag`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `task_tag` ;
+
+SHOW WARNINGS;
+CREATE TABLE IF NOT EXISTS `task_tag` (
+  `taskid` INT UNSIGNED NOT NULL,
+  `tagid` INT UNSIGNED NOT NULL,
+  INDEX `A_idx` (`taskid` ASC) VISIBLE,
+  INDEX `b_idx` (`tagid` ASC) VISIBLE,
+  CONSTRAINT `A`
+    FOREIGN KEY (`taskid`)
+    REFERENCES `task` (`taskid`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `b`
+    FOREIGN KEY (`tagid`)
+    REFERENCES `tag` (`tagid`)
+    ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
-drop procedure if exists sp_task_list;
+SHOW WARNINGS;
 
-delimiter //
-create definer=`mysql`@`%` procedure `sp_task_list`()
-begin
-    select json_object('taskid', t.taskid, 'name', t.name, 'descr', t.descr, 'project', p.project, 'status', t.status, 'taskid', a.taskid, 'assigns', case when a.taskid is not null then json_arrayagg(a.assigns) else json_array() end) json
-	 from task t
-     join (select p.projectid, json_object('projectId', p.projectid, 'projectName', p.name) project from project p) p on t.projectid = p.projectid
-left join (select a.taskid, json_object('userid', a.userid, 'name', u.name, 'email', u.email) assigns
-			 from task_assign a
-             join user u
-			   on a.userid = u.userid) a
-	   on t.taskid = a.taskid
- group by t.taskid
- order by t.taskid;
- end //
-delimiter ;
+-- -----------------------------------------------------
+-- Table `assign_picture`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `assign_picture` ;
+
+SHOW WARNINGS;
+CREATE TABLE IF NOT EXISTS `assign_picture` (
+  `assignid` INT UNSIGNED NOT NULL,
+  `filename` VARCHAR(72) NOT NULL,
+  `contentType` VARCHAR(24) NOT NULL,
+  `picture` BLOB NULL,
+  `createdat` TIMESTAMP NOT NULL DEFAULT current_timestamp,
+  `updatedat` TIMESTAMP NOT NULL DEFAULT current_timestamp on update current_timestamp,
+  `uuid` BINARY(16) NOT NULL DEFAULT (uuid_to_bin(uuid())),
+  UNIQUE INDEX `assignid_UNIQUE` (`assignid` ASC) VISIBLE,
+  PRIMARY KEY (`uuid`),
+  UNIQUE INDEX `uuid_UNIQUE` (`uuid` ASC) VISIBLE,
+  CONSTRAINT `assign`
+    FOREIGN KEY (`assignid`)
+    REFERENCES `assign` (`assignid`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
 
 SHOW WARNINGS;
 
@@ -154,38 +283,97 @@ SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 
-insert into user (name, email) values
-  ('Andy Bernard', 'andy@theoffice.com'),
-  ('Angela Martin', 'angela@theoffice.com'),
-  ('Cathy Simms', 'cathy@theoffice.com'),
-  ('Creed Bratton', 'creed@theoffice.com'),
-  ('Darryl Philbin', 'darryl@theoffice.com'),
-  ('David Wallace', 'david@theoffice.com'),
-  ('Dwight Schrute', 'dwight@theoffice.com'),
-  ('Erin Hannon', 'erin@theoffice.com'),
-  ('Gabe Lewis', 'gabe@theoffice.com'),
-  ('Holly Flax', 'holly@theoffice.com'),
-  ('Jan Levinson', 'jan@theoffice.com'),
-  ('Jim Halpert', 'jim@theoffice.com'),
-  ('Karen Filippelli', 'karen@theoffice.com'),
-  ('Kelly Kapoor', 'kelly@theoffice.com'),
-  ('Kevin Malone', 'kevin@theoffice.com'),
-  ('Meredith Palmer', 'meredith@theoffice.com'),
-  ('Michael Scott', 'michael@theoffice.com'),
-  ('Mose', 'mose@theoffice.com'),
-  ('Nellie Bertram', 'nellie@theoffice.com'),
-  ('Oscar Martinez', 'oscar@theoffice.com'),
-  ('Pam Beesly', 'pam@theoffice.com'),
-  ('Pete Miller', 'pete@theoffice.com'),
-  ('Phyllis Vance Lapin', 'phyllis@theoffice.com'),
-  ('Robert California', 'robert@theoffice.com'),
-  ('Roy Anderson', 'roy@theoffice.com'),
-  ('Ryan Howard', 'ryan@theoffice.com'),
-  ('Stanley Hudson', 'stanley@theoffice.com'),
-  ('Toby Flenderson', 'toby@theoffice.com'),
-  ('Todd Packer', 'rood@theoffice.com');
+-- -----------------------------------------------------
+-- Data for table `priority`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `demo-taskmngr-db`;
+INSERT INTO `priority` (`priorityid`, `name`, `createdat`, `updatedat`, `uuid`) VALUES (DEFAULT, 'High', DEFAULT, DEFAULT, DEFAULT);
+INSERT INTO `priority` (`priorityid`, `name`, `createdat`, `updatedat`, `uuid`) VALUES (DEFAULT, 'Medium', DEFAULT, DEFAULT, DEFAULT);
+INSERT INTO `priority` (`priorityid`, `name`, `createdat`, `updatedat`, `uuid`) VALUES (DEFAULT, 'Low', DEFAULT, DEFAULT, DEFAULT);
 
-insert into user_picture (userid, filename, contentType, picture)
+COMMIT;
+
+
+-- -----------------------------------------------------
+-- Data for table `status`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `demo-taskmngr-db`;
+INSERT INTO `status` (`statusid`, `name`, `createdat`, `updatedat`, `uuid`) VALUES (DEFAULT, 'Not started', DEFAULT, DEFAULT, DEFAULT);
+INSERT INTO `status` (`statusid`, `name`, `createdat`, `updatedat`, `uuid`) VALUES (DEFAULT, 'In progress', DEFAULT, DEFAULT, DEFAULT);
+INSERT INTO `status` (`statusid`, `name`, `createdat`, `updatedat`, `uuid`) VALUES (DEFAULT, 'Done', DEFAULT, DEFAULT, DEFAULT);
+
+COMMIT;
+
+
+-- -----------------------------------------------------
+-- Data for table `project`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `demo-taskmngr-db`;
+INSERT INTO `project` (`projectid`, `name`, `descr`, `createdat`, `updatedat`, `uuid`) VALUES (DEFAULT, 'Piloto', 'Piloto', DEFAULT, DEFAULT, DEFAULT);
+INSERT INTO `project` (`projectid`, `name`, `descr`, `createdat`, `updatedat`, `uuid`) VALUES (DEFAULT, 'Diversity Day', 'Diversity Day', DEFAULT, DEFAULT, DEFAULT);
+INSERT INTO `project` (`projectid`, `name`, `descr`, `createdat`, `updatedat`, `uuid`) VALUES (DEFAULT, 'Health Care', 'Health Care', DEFAULT, DEFAULT, DEFAULT);
+INSERT INTO `project` (`projectid`, `name`, `descr`, `createdat`, `updatedat`, `uuid`) VALUES (DEFAULT, 'The Alliance', 'The Alliance', DEFAULT, DEFAULT, DEFAULT);
+INSERT INTO `project` (`projectid`, `name`, `descr`, `createdat`, `updatedat`, `uuid`) VALUES (DEFAULT, 'Basketball', 'Basketball', DEFAULT, DEFAULT, DEFAULT);
+INSERT INTO `project` (`projectid`, `name`, `descr`, `createdat`, `updatedat`, `uuid`) VALUES (DEFAULT, 'Hot Girl', 'Hot Girl', DEFAULT, DEFAULT, DEFAULT);
+
+COMMIT;
+
+
+-- -----------------------------------------------------
+-- Data for table `tag`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `demo-taskmngr-db`;
+INSERT INTO `tag` (`tagid`, `name`, `createdat`, `updatedat`, `uuid`) VALUES (DEFAULT, 'Red', DEFAULT, DEFAULT, DEFAULT);
+INSERT INTO `tag` (`tagid`, `name`, `createdat`, `updatedat`, `uuid`) VALUES (DEFAULT, 'Blue', DEFAULT, DEFAULT, DEFAULT);
+INSERT INTO `tag` (`tagid`, `name`, `createdat`, `updatedat`, `uuid`) VALUES (DEFAULT, 'Green', DEFAULT, DEFAULT, DEFAULT);
+INSERT INTO `tag` (`tagid`, `name`, `createdat`, `updatedat`, `uuid`) VALUES (DEFAULT, 'Yellow', DEFAULT, DEFAULT, DEFAULT);
+
+COMMIT;
+
+SHOW WARNINGS;
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+
+insert into assign (name, email)
+	values
+	  ('Andy Bernard', 'andy@theoffice.com'),
+	  ('Angela Martin', 'angela@theoffice.com'),
+	  ('Cathy Simms', 'cathy@theoffice.com'),
+	  ('Creed Bratton', 'creed@theoffice.com'),
+	  ('Darryl Philbin', 'darryl@theoffice.com'),
+	  ('David Wallace', 'david@theoffice.com'),
+	  ('Dwight Schrute', 'dwight@theoffice.com'),
+	  ('Erin Hannon', 'erin@theoffice.com'),
+	  ('Gabe Lewis', 'gabe@theoffice.com'),
+	  ('Holly Flax', 'holly@theoffice.com'),
+	  ('Jan Levinson', 'jan@theoffice.com'),
+	  ('Jim Halpert', 'jim@theoffice.com'),
+	  ('Karen Filippelli', 'karen@theoffice.com'),
+	  ('Kelly Kapoor', 'kelly@theoffice.com'),
+	  ('Kevin Malone', 'kevin@theoffice.com'),
+	  ('Meredith Palmer', 'meredith@theoffice.com'),
+	  ('Michael Scott', 'michael@theoffice.com'),
+	  ('Mose', 'mose@theoffice.com'),
+	  ('Nellie Bertram', 'nellie@theoffice.com'),
+	  ('Oscar Martinez', 'oscar@theoffice.com'),
+	  ('Pam Beesly', 'pam@theoffice.com'),
+	  ('Pete Miller', 'pete@theoffice.com'),
+	  ('Phyllis Vance Lapin', 'phyllis@theoffice.com'),
+	  ('Robert California', 'robert@theoffice.com'),
+	  ('Roy Anderson', 'roy@theoffice.com'),
+	  ('Ryan Howard', 'ryan@theoffice.com'),
+	  ('Stanley Hudson', 'stanley@theoffice.com'),
+	  ('Toby Flenderson', 'toby@theoffice.com'),
+	  ('Todd Packer', 'rood@theoffice.com')
+	;
+
+insert into assign_picture (assignid, filename, contentType, picture)
 	values 
 		(10000, 'andy.jpg', 'image/jpeg', FROM_BASE64('/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAd
 Hx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3
@@ -1445,62 +1633,4 @@ oBrDnbHGPrEVV0sd3IRne1C5OtehFkjR3X2URhsnYtFLBw/eTT/QuLsmJvMBQPxz8qTO7DTJztdv
 VvTeknzeoBj6VWiZhCdKMw/oDs1VRwNp4CjBVz0/ztSJ+oJcGTdrjuOILtgzBk27Dn6PqJ08qGXs
 auQ/si/49F/lhmA9gwnKl+yHSKPtVkki4cnMbsha5hVipxlScEe40a/6CuTM9QVTGcqD8K8+HJVL
 gXWYHoKjAxtPKmZPWBH0igMcDmaaYf/Z'))
-        ;
-
-insert into project (name, descr) values
-    ('Piloto', 'Piloto'),
-    ('Diversity Day', 'Diversity Day'),
-    ('Health Care', 'Health Care'),
-    ('The Alliance', 'The Alliance'),
-    ('Basketball', 'Basketball'),
-    ('Hot Girl', 'Hot Girl')
-    ;
-
-insert into task (name, descr, projectid)
-	values
-		('Task #01', 'Task Descr #01', 1),
-		('Task #02', 'Task Descr #02', 2),
-		('time #03', 'Task Descr #03', 3),
-		('Task #04', 'Task Descr #04', 1),
-		('Task #05', 'Task Descr #05', 2),
-		('time #06', 'Task Descr #06', 3),
-		('Task #07', 'Task Descr #07', 1),
-		('Task #08', 'Task Descr #08', 2),
-		('time #09', 'Task Descr #09', 3),
-		('Task #10', 'Task Descr #10', 4),
-		('Task #11', 'Task Descr #11', 5),
-		('time #12', 'Task Descr #12', 6)
-        ;
-
-insert into task_assign (taskid, userid)
-	values
-		(1, 10000),
-        (1, 10001),
-        (1, 10002),
-        (2, 10003),
-        (3, 10004),
-        (2, 10005),
-        (2, 10020),
-        (5, 10001),
-        (5, 10010),
-        (2, 10015),
-        (3, 10009),
-        (3, 10010),
-        (3, 10019),
-        (3, 10025),
-        (4, 10022),
-        (5, 10023),
-        (6, 10024),
-        (7, 10025),
-        (8, 10001),
-        (8, 10007),
-        (8, 10008),
-        (8, 10009),
-        (8, 10010),
-        (8, 10019),
-        (9, 10001),
-        (9, 10010),
-        (9, 10011),
-        (9, 10012),
-        (9, 10013)
         ;
