@@ -84,7 +84,7 @@ SHOW WARNINGS;
 CREATE TABLE IF NOT EXISTS `task` (
   `taskid` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(72) NOT NULL,
-  `descr` VARCHAR(45) NULL,
+  `descr` VARCHAR(512) NULL,
   `priorityid` INT UNSIGNED NULL,
   `statusid` INT UNSIGNED NULL,
   `projectid` INT UNSIGNED NULL,
@@ -199,7 +199,7 @@ CREATE TABLE IF NOT EXISTS `task_assign` (
     FOREIGN KEY (`taskid`)
     REFERENCES `task` (`taskid`)
     ON DELETE CASCADE
-    ON UPDATE NO ACTION,
+    ON UPDATE CASCADE,
   CONSTRAINT `userid_fk`
     FOREIGN KEY (`assignid`)
     REFERENCES `assign` (`assignid`)
@@ -242,8 +242,8 @@ CREATE TABLE IF NOT EXISTS `task_tag` (
   CONSTRAINT `A`
     FOREIGN KEY (`taskid`)
     REFERENCES `task` (`taskid`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
   CONSTRAINT `b`
     FOREIGN KEY (`tagid`)
     REFERENCES `tag` (`tagid`)
@@ -294,7 +294,6 @@ INSERT INTO `priority` (`priorityid`, `name`, `createdat`, `updatedat`, `uuid`) 
 
 COMMIT;
 
-
 -- -----------------------------------------------------
 -- Data for table `status`
 -- -----------------------------------------------------
@@ -305,7 +304,6 @@ INSERT INTO `status` (`statusid`, `name`, `createdat`, `updatedat`, `uuid`) VALU
 INSERT INTO `status` (`statusid`, `name`, `createdat`, `updatedat`, `uuid`) VALUES (DEFAULT, 'Done', DEFAULT, DEFAULT, DEFAULT);
 
 COMMIT;
-
 
 -- -----------------------------------------------------
 -- Data for table `project`
@@ -320,7 +318,6 @@ INSERT INTO `project` (`projectid`, `name`, `descr`, `createdat`, `updatedat`, `
 INSERT INTO `project` (`projectid`, `name`, `descr`, `createdat`, `updatedat`, `uuid`) VALUES (DEFAULT, 'Hot Girl', 'Hot Girl', DEFAULT, DEFAULT, DEFAULT);
 
 COMMIT;
-
 
 -- -----------------------------------------------------
 -- Data for table `tag`
