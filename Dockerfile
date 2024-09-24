@@ -6,5 +6,5 @@ ENV MYSQL_DATABASE=demo-taskmngr-db
 ENV MYSQL_ROOT_PASSWORD=password
 ENV TZ=America/Mexico_City
 COPY config/user.cnf /etc/mysql/my.cnf
-COPY demo-taskmngr-db.sql /docker-entrypoint-initdb.d/
+# COPY demo-taskmngr-db.sql /docker-entrypoint-initdb.d/
 EXPOSE 3306
